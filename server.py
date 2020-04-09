@@ -4,6 +4,7 @@ import time
 from database import *
 
 app = Flask(__name__)
+db = SQLite3DB('messanger_db.db')
 
 @app.route("/new_user", methods=['POST'])
 def new_user():
@@ -14,8 +15,8 @@ def new_user():
     data = request.json
     username = data['username']
     password = data['password']
-    if is_unique(username):
-        add_user(username,password)
+    if db.is_unique(username):
+        db.add_user(username,password)
         return {"ok":True}
 
 
@@ -29,8 +30,8 @@ def send():
     username = data['username']
     password = data['password']
     text = data['text']
-    if authorization(username,password):
-        send_message(username,text)
+    if db.authorization(username,password):
+        db.send_message(username,text)
         return {"ok":True}
     else:
         return {"ok":False}
@@ -47,7 +48,7 @@ def history():
     """
     after = float(request.args['after'])
     filtered_messages = []
-    for message in get_messages_after(after):
+    for message in db.get_messages_after(after):
         if after < message[2]:
             filtered_messages.append({'username':message[0],'text':message[1],'time':message[2]})
     return {'messages':filtered_messages}
